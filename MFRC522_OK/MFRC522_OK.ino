@@ -1,7 +1,7 @@
 #include <SPI.h>
-#include <RFID.h>
+#include <MFRC522.h>
 
-RFID rfid(53,5);       //this is used for Arduino Mega 2560
+MFRC522 rfid(53,5);       //this is used for Arduino Mega 2560
 //RFID rfid(10,5);    //this is used for Arduino UNO
 //use library  is to declare like this 
 //   RFID  devicename(NASS_pin_name, Reset_pin_name)l
@@ -9,17 +9,17 @@ void setup()
 { 
   Serial.begin(9600);
   SPI.begin(); 
-  rfid.init();
+  rfid.PCD_Init();
   
 }
 
 void loop()
 {
-    if (rfid.isCard()) {
+    if (rfid.PICC_IsNewCardPresent()) {
       
           Serial.println("IS CARD");
           
-          if (rfid.readCardSerial()) {
+          if (rfid.PICC_ReadCardSerial()) {
             
                         Serial.println(" ");
                         Serial.println("RFID Card Number is : ");

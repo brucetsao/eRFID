@@ -1,0 +1,139 @@
+﻿#include "LiquidCrystal.h"
+extern "C" {
+  #include <stdio.h>
+  #include <string.h>
+  #include <inttypes.h>
+  #include "WConstants.h"
+
+  extern void pinMode(int, int);
+  extern void digitalWrite(int, int);
+  extern int digitalRead(int);
+  extern void portMode(uint8_t, uint8_t);
+  extern void portWrite(uint8_t, uint8_t);
+  extern uint8_t portRead(uint8_t);
+}
+/*
+no room for following defines:
+
+#define right 0x1C
+#define left 0x18
+#define hm 0x02
+*/
+#define init1 0x30
+#define init2 0x0E
+#define init3 0x06
+#define init4 0x80
+#define clr 0x01
+
+int RS = 12; 
+int RW = 11;
+int Enable = 2;
+int DB[] = {3, 4, 5, 6, 7, 8, 9, 10};
+
+void LiquidCrystal::commandWrite(int value) {
+ int i = 0;
+ digitalWrite(RS, LOW);
+ digitalWrite(RW, LOW);
+ for (i=DB[0]; i <= DB[7]; i++) {
+   digitalWrite(i,value & 01);
+   value >>= 1;
+ }
+ digitalWrite(Enable,LOW);
+ delayMicroseconds(1);
+ // send a pulse to enable
+ digitalWrite(Enable,HIGH);
+ delayMicroseconds(1);  
+ digitalWrite(Enable,LOW);
+ delayMicroseconds(2);  
+ delay(10);
+}
+
+void LiquidCrystal::init () {
+ int i = 0;
+ for (i=Enable; i <= RS; i++) {
+   pinMode(i,OUTPUT);
+ }
+ delay(100);
+ // initiatize lcd after a short pause
+ // needed by the LCDs controller
+ commandWrite(init1);  
+                         
+ delay(64);                      
+ commandWrite(init1);  
+                         
+ delay(50);                      
+ commandWrite(init1);  
+ 
+ delay(50);                     
+ 
+commandWrite(init2);  // display control:
+                         // turn display on, cursor on, no blinking
+ delay(20);                      
+ commandWrite(init3);  // entry mode set: 06
+                         // increment automatically, display shift, right shift
+ delay(20);                      
+                       
+ commandWrite(clr);  // clear display, set cursor position to zero  
+ delay(100);                      
+ commandWrite(init4);  // 
+                         // 
+ delay(20);
+}
+
+LiquidCrystal::LiquidCrystal()
+{
+  
+}
+
+void LiquidCrystal::print(int value) {
+ // poll all the pins
+ int i = 0;
+ digitalWrite(RS, HIGH);
+ digitalWrite(RW, LOW);
+ for (i=DB[0]; i <= DB[7]; i++) {
+   digitalWrite(i,value & 01);
+   value >>= 1;
+ }
+ digitalWrite(Enable,LOW);
+ delayMicroseconds(1);
+ // send a pulse to enable
+ digitalWrite(Enable,HIGH);
+ delayMicroseconds(1);
+ digitalWrite(Enable,LOW);
+ delay(1);  // pause 1 ms according to datasheet
+}
+
+void LiquidCrystal::printIn(char value[]) {
+	uint8_t i;
+	
+	for (i=0;i<strlen(value);i++){
+		print(value[i]);
+	}
+}
+
+void LiquidCrystal::clear(){
+ commandWrite(clr); //clear screen 
+}
+
+/* 
+//No room for the following functions:
+
+void LiquidCrystal::home(){
+  commandWrite(hm);  // set cursor position to zero
+}
+
+void LiquidCrystal::setCursor(int index){
+  //0-79, index for one line display, 8 bit mode
+  //0-39 and 64-103 for lines one and two of two line display, not implemented yet
+  int cmd = 128+index;
+  commandWrite(cmd);
+}
+
+void LiquidCrystal::shiftDisplayLeft(){ 
+  commandWrite(left);
+}
+
+void LiquidCrystal::shiftDisplayRight(){
+  commandWrite(right);
+}
+*/
